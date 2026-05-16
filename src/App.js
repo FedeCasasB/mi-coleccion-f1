@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import DESCRIPTIONS from "./descriptions";
 
 const F1_CARS = [
   { year: 1950, car: "Alfa Romeo 158", driver: "Nino Farina", team: "Alfa Romeo", engine: "Alfa Romeo 1.5 S8 Turbo", country: "🇮🇹", image:"https://www.diariomotor.com/imagenes/2015/05/AlfaRomeo158.jpg?class=L" },
@@ -133,18 +134,10 @@ async function generateDescriptionFn(car) {
   } catch { return "Error al conectar con la IA."; }
 }
 
-function CarCard({ car, onGenerateDescription }) {
-  const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
+function CarCard({ car }) {
   const [expanded, setExpanded] = useState(false);
   const accentColor = DECADE_COLORS[getDecade(car.year)];
-  const handleGenerate = async (e) => {
-    e.stopPropagation();
-    if (description) { setExpanded(!expanded); return; }
-    setLoading(true);
-    setDescription(await onGenerateDescription(car));
-    setLoading(false); setExpanded(true);
-  };
+  const description = DESCRIPTIONS[car.year];
   return (
     <div style={{background:"linear-gradient(160deg,#FAF6EE 0%,#F0E8D8 100%)",border:`2px solid ${accentColor}`,borderTop:`6px solid ${accentColor}`,fontFamily:"'Times New Roman',serif",position:"relative",overflow:"hidden",transition:"transform 0.2s,box-shadow 0.2s",boxShadow:"4px 4px 0px rgba(0,0,0,0.12)"}}
       onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="6px 8px 0px rgba(0,0,0,0.18)";}}
@@ -175,10 +168,24 @@ function CarCard({ car, onGenerateDescription }) {
           <div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,color:"#888",letterSpacing:"0.1em"}}>ESCUDERÍA</div><div style={{color:"#1a1a1a",fontWeight:"bold",fontSize:12}}>{car.team}</div></div>
           <div style={{gridColumn:"1/-1",marginTop:4}}><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,color:"#888",letterSpacing:"0.1em"}}>MOTOR</div><div style={{color:"#444",fontSize:11,fontStyle:"italic"}}>{car.engine}</div></div>
         </div>
-        {expanded&&description&&<div style={{marginTop:10,padding:"8px 10px",background:`${accentColor}10`,borderLeft:`3px solid ${accentColor}`,fontSize:11,lineHeight:1.6,color:"#2a2a2a",fontStyle:"italic"}}>{description}</div>}
-        <button onClick={handleGenerate} disabled={loading} style={{marginTop:10,width:"100%",padding:"7px 0",background:loading?"#ddd":accentColor,color:loading?"#888":"#FAF6EE",border:"none",cursor:loading?"not-allowed":"pointer",fontFamily:"'Bebas Neue',sans-serif",fontSize:13,letterSpacing:"0.1em"}}>
-          {loading?"⏳ GENERANDO...":description&&expanded?"◀ OCULTAR HISTORIA":description?"▶ VER HISTORIA":"✦ GENERAR HISTORIA CON IA"}
-        </button>
+        {description && (
+          <div style={{marginTop:8}}>
+            <div style={{
+              overflow:"hidden",
+              maxHeight: expanded ? "500px" : "60px",
+              transition:"max-height 0.3s ease",
+              maskImage: expanded ? "none" : "linear-gradient(to bottom, black 40%, transparent 100%)",
+              WebkitMaskImage: expanded ? "none" : "linear-gradient(to bottom, black 40%, transparent 100%)",
+            }}>
+              <div style={{padding:"8px 10px",background:`${accentColor}10`,borderLeft:`3px solid ${accentColor}`,fontSize:11,lineHeight:1.6,color:"#2a2a2a",fontStyle:"italic"}}>
+                {description}
+              </div>
+            </div>
+            <button onClick={()=>setExpanded(!expanded)} style={{marginTop:6,width:"100%",padding:"5px 0",background:"transparent",color:accentColor,border:`1px solid ${accentColor}`,cursor:"pointer",fontFamily:"'Bebas Neue',sans-serif",fontSize:12,letterSpacing:"0.1em"}}>
+              {expanded ? "◀ LEER MENOS" : "▶ LEER MÁS"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -206,7 +213,7 @@ export default function F1Collection() {
       <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet"/>
       <div style={{width:"100%",maxWidth:360}}>
         <div style={{textAlign:"center",marginBottom:16}}><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,color:"#8B1A1A",letterSpacing:"0.2em"}}>GRANDES PREMIOS · CAMPEÓN DEL MUNDO</div></div>
-        <CarCard car={qrCar} onGenerateDescription={generateDescriptionFn}/>
+        <CarCard car={qrCar}/>
         <div style={{textAlign:"center",marginTop:16}}><a href="/" style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"#8B1A1A",letterSpacing:"0.15em",textDecoration:"none"}}>VER COLECCIÓN COMPLETA →</a></div>
       </div>
     </div>
@@ -253,13 +260,13 @@ export default function F1Collection() {
             <div key={decade} style={{marginBottom:48}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:38,color:DECADE_COLORS[decade],letterSpacing:"0.05em",borderBottom:`2px solid ${DECADE_COLORS[decade]}`,paddingBottom:4,marginBottom:20}}>{decade}</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:20}}>
-                {cars.map(car=><CarCard key={car.year} car={car} onGenerateDescription={generateDescription}/>)}
+                {cars.map(car=><CarCard key={car.year} car={car}/>)}
               </div>
             </div>
           ))
         ):(
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:20}}>
-            {filtered.map(car=><CarCard key={car.year} car={car} onGenerateDescription={generateDescription}/>)}
+            {filtered.map(car=><CarCard key={car.year} car={car}/>)}
           </div>
         )}
         {filtered.length===0&&<div style={{textAlign:"center",padding:"80px 24px"}}><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,color:"#C8A050"}}>SIN RESULTADOS</div></div>}
